@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CV - Fitriyani | Admin</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* Import Font bergaya terminal/tech */
+  @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Segoe+UI:wght@400;600&display=swap');
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #1e293b; /* Background layar luar gelap */
+    color: #1e293b;
+    line-height: 1.4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 15px;
+  }
+
+  /* ===== TOMBOL DOWNLOAD PDF ===== */
+  .toolbar {
+    width: 210mm;
+    max-width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+  }
+  .btn-pdf {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #0ea5e9;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(14,165,233,0.3);
+    transition: all 0.2s;
+  }
+  .btn-pdf:hover { background: #0284c7; transform: translateY(-2px); }
+
+  /* ===== KERTAS A4 DENGAN EFEK SISTEM/GRID ===== */
+  .page {
+    width: 210mm;
+    height: 297mm;
+    background-color: #f8fafc;
+    /* Membuat pola grid kotak-kotak ala blueprint/sistem */
+    background-image: 
+      linear-gradient(to right, rgba(14, 165, 233, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(14, 165, 233, 0.05) 1px, transparent 1px);
+    background-size: 8mm 8mm; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Aksen garis tech di pinggir kiri kertas */
+  .page::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: linear-gradient(to bottom, #0ea5e9, #1e3c72);
+    z-index: 10;
+  }
+
+  /* ===== HEADER ===== */
+  header {
+    background: #1e3c72; /* Biru gelap tech */
+    color: #fff;
+    padding: 12mm 15mm 8mm;
+    display: flex;
+    align-items: center;
+    gap: 12mm;
+    border-bottom: 2px solid #0ea5e9; /* Garis neon cyan */
+    position: relative;
+  }
+
+  /* Efek garis scanline di header */
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -2px; left: 0; right: 0;
+    height: 2px;
+    background: repeating-linear-gradient(90deg, #0ea5e9, #0ea5e9 10px, transparent 10px, transparent 20px);
+    opacity: 0.6;
+  }
+
+  .photo-container {
+    flex-shrink: 0;
+    width: 32mm;
+    height: 42mm;
+    border-radius: 4px; /* Kotak tech, gak terlalu bulat */
+    overflow: hidden;
+    border: 2px solid #0ea5e9; /* Border foto cyan */
+    box-shadow: 0 0 15px rgba(14, 165, 233, 0.4); /* Efek glow */
+    position: relative;
+  }
+  
+  .photo-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .header-text h1 {
+    font-family: 'Fira Code', monospace; /* Font terminal */
+    font-size: 26px;
+    color: #fff;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    line-height: 1.1;
+    text-shadow: 0 0 10px rgba(14, 165, 233, 0.5);
+  }
+
+  /* Nama file / role ala sistem */
+  .header-text .role {
+    font-family: 'Fira Code', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: #38bdf8; /* Light cyan */
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .header-text .role::before {
+    content: '>';
+    color: #0ea5e9;
+  }
+
+  .contact-info {
+    font-size: 11px;
+    color: #cbd5e1;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .contact-info span { display: flex; align-items: center; gap: 6px; }
+  .contact-info svg { width: 12px; height: 12px; fill: #0ea5e9; }
+
+  /* ===== BODY ===== */
+  main {
+    padding: 10mm 15mm 12mm 18mm; /* Padding kiri agak gede buat ngehindarin garis pinggir */
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  section { margin-bottom: 7mm; }
+
+  /* Judul Section ala Terminal */
+  h2 {
+    font-family: 'Fira Code', monospace;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #1e3c72;
+    border-bottom: 1px dashed #94a3b8; /* Garis putus-putus */
+    padding-bottom: 4px;
+    margin-bottom: 8px;
+    position: relative;
+    display: inline-block;
+  }
+  /* Aksen titik biru sebelum judul */
+  h2::before {
+    content: '■';
+    color: #0ea5e9;
+    font-size: 10px;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  .summary { font-size: 11.5px; color: #334155; text-align: justify; line-height: 1.5; }
+
+  /* ===== PENGALAMAN ===== */
+  .item { margin-bottom: 10px; padding-left: 10px; border-left: 2px solid #e2e8f0; }
+  .item:last-child { margin-bottom: 0; }
+  .item h3 { font-size: 12.5px; color: #1e3c72; font-weight: 600; }
+  .item .date { font-size: 10.5px; color: #0ea5e9; font-family: 'Fira Code', monospace; margin-bottom: 3px; }
+  .item ul { margin-left: 14px; font-size: 11.5px; color: #475569; }
+  .item ul li { margin-bottom: 2px; }
+
+  /* ===== PENDIDIKAN (UI KACA/GLASSMORPHISM) ===== */
+  .edu-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .edu-box {
+    background: rgba(255, 255, 255, 0.6); /* Semi transparan */
+    backdrop-filter: blur(4px);
+    border: 1px solid #cbd5e1;
+    border-top: 3px solid #0ea5e9; /* Aksen cyan di atas */
+    padding: 8px 10px;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+  .edu-box .year { font-family: 'Fira Code', monospace; font-size: 10px; color: #0ea5e9; font-weight: 600; margin-bottom: 2px; }
+  .edu-box .school { font-size: 11.5px; font-weight: bold; color: #1e3c72; line-height: 1.2; }
+  .edu-box .major { font-size: 10.5px; color: #475569; margin-top: 2px; }
+
+  /* ===== BOTTOM SECTION ===== */
+  .bottom-section {
+    margin-top: 8mm; 
+    display: flex;
+    flex-direction: column; 
+    gap: 6mm; 
+  }
+
+  .skill-list {
+    list-style: none;
+    font-size: 11.5px;
+    color: #334155;
+    display: grid;
+    grid-template-columns: 1fr 1fr; 
+    gap: 3px 10px; 
+  }
+  
+  .skill-list li {
+    position: relative;
+    padding-left: 16px;
+  }
+  /* Tanda ceklis ala coding / sistem */
+  .skill-list li::before {
+    content: "[v]"; 
+    font-family: 'Fira Code', monospace;
+    font-size: 10px;
+    position: absolute;
+    left: 0;
+    color: #0ea5e9;
+    font-weight: bold;
+  }
+
+  /* ===== PRINT ===== */
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+  @media print {
+    body { background: #fff; padding: 0; display: block; }
+    .toolbar { display: none !important; }
+    .page {
+      width: 210mm;
+      height: 297mm;
+      box-shadow: none;
+    }
+    /* Wajib banget buat nampilin warna background grid */
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <div class="toolbar">
+    <button class="btn-pdf" onclick="window.print()">Simpan sebagai PDF</button>
+  </div>
+
+  <div class="page">
+    <header>
+      <div class="photo-container">
+        <img src="https://c.top4top.io/p_3968mtdcj0.jpg" alt="Foto Fitriyani">
+      </div>
+      <div class="header-text">
+        <h1>Fitriyani</h1>
+        <div class="role">Admin_Staff // Fresh_Graduate</div>
+        <div class="contact-info">
+          <span>
+            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+            fitrilayan11q@gmail.com
+          </span>
+          <span>
+            <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+            0838-7180-2257
+          </span>
+          <span>
+            <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            Pandeglang, Banten
+          </span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      
+      <section>
+        <h2>Tentang Saya</h2>
+        <p class="summary">
+          Lulusan SMA Negeri 10 Pandeglang jurusan Bahasa tahun 2027. Memiliki ketertarikan besar di bidang administrasi, terbiasa mengoperasikan Microsoft Office, teliti dalam pengelolaan data, serta mampu bekerja sama dalam tim. Siap bekerja penuh waktu, berdedikasi, dan cepat beradaptasi dengan lingkungan kerja baru.
+        </p>
+      </section>
+
+      <section>
+        <h2>Pengalaman Organisasi</h2>
+        <div class="item">
+          <h3>Anggota Ekstrakurikuler Badminton</h3>
+          <div class="date">2021 – 2024 | SMA Negeri 10 Pandeglang</div>
+          <ul>
+            <li>Mengikuti latihan rutin untuk meningkatkan kemampuan dan sportivitas.</li>
+            <li>Melatih kerja sama tim, kedisiplinan, dan manajemen waktu.</li>
+          </ul>
+        </div>
+        <div class="item">
+          <h3>Panitia OSIS & MC Acara Maulid Nabi</h3>
+          <div class="date">2022 | SMP Negeri 1 Saketi</div>
+          <ul>
+            <li>Membantu menyusun rangkaian acara hingga berjalan lancar.</li>
+            <li>Memandu acara dari pembukaan hingga penutup, melatih kepercayaan diri dan komunikasi publik.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <h2>Pendidikan</h2>
+        <div class="edu-grid">
+          <div class="edu-box">
+            <div class="year">2024 – 2027</div>
+            <div class="school">SMA Negeri 10 Pandeglang</div>
+            <div class="major">Jurusan Bahasa</div>
+          </div>
+          <div class="edu-box">
+            <div class="year">2021 – 2024</div>
+            <div class="school">SMP Negeri 1 Saketi</div>
+            <div class="major">-</div>
+          </div>
+          <div class="edu-box">
+            <div class="year">2016 – 2021</div>
+            <div class="school">SDN Kadudampit 2</div>
+            <div class="major">-</div>
+          </div>
+        </div>
+      </section>
+
+      <div class="bottom-section">
+        <div>
+          <h2>Hard Skill</h2>
+          <ul class="skill-list">
+            <li>Microsoft Word</li>
+            <li>Microsoft Excel</li>
+            <li>Microsoft PowerPoint</li>
+            <li>Mengetik Cepat (10 Jari)</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h2>Soft Skill</h2>
+          <ul class="skill-list">
+            <li>Teliti & Detail</li>
+            <li>Disiplin & Bertanggung Jawab</li>
+            <li>Komunikasi yang Baik</li>
+            <li>Cepat Belajar</li>
+            <li>Ramah & Mudah Beradaptasi</li>
+          </ul>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+</body>
+</html>
