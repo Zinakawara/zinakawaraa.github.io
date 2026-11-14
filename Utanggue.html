@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Utang Gue</title>
+<style>
+:root {
+  --bg:#0b0d10; --panel:#11161c; --line:#1e2632; --fg:#d6deeb;
+  --dim:#5f6b7a; --acc:#7dd3fc; --ok:#4ade80; --warn:#fbbf24;
+  --bad:#f87171;
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg);
+       font:14px/1.5 ui-sans-serif,system-ui,-apple-system,sans-serif; }
+header { display:flex; align-items:center; gap:24px; flex-wrap:wrap;
+         padding:14px 24px; border-bottom:1px solid var(--line);
+         background:var(--panel); }
+.brand { color:var(--acc); font-weight:700; letter-spacing:2px; }
+nav { display:flex; gap:4px; }
+nav button { padding:7px 14px; border-radius:6px; border:1px solid transparent;
+             background:transparent; color:var(--fg); cursor:pointer; font:inherit; }
+nav button:hover { color:var(--acc); }
+nav button.active { background:#0e1319; border-color:var(--line); color:var(--acc); }
+main { padding:24px; max-width:1100px; margin:0 auto; }
+footer { text-align:center; color:var(--dim); font-size:12px; padding:30px 0; }
+h2 { margin:24px 0 12px; font-size:16px; color:var(--acc);
+     letter-spacing:1px; text-transform:uppercase; }
+.stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.stat { background:var(--panel); border:1px solid var(--line);
+        border-radius:8px; padding:14px 16px; }
+.stat label { display:block; color:var(--dim); font-size:11px;
+              text-transform:uppercase; letter-spacing:1px; }
+.stat b { font-size:22px; }
+.total { color:var(--bad); }
+.bad { color:var(--bad); } .warn { color:var(--warn); } .ok { color:var(--ok); }
+table { width:100%; border-collapse:collapse; background:var(--panel);
+        border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+th, td { padding:10px 12px; text-align:left;
+         border-bottom:1px solid var(--line); }
+th { background:#0e1319; color:var(--dim); font-size:11px;
+     text-transform:uppercase; letter-spacing:1px; }
+tr.overdue td { background:rgba(248,113,113,.08); }
+tr.soon td { background:rgba(251,191,36,.06); }
+tr.paid td { opacity:.5; text-decoration:line-through; }
+tr.paid td.chk, tr.paid td.act { text-decoration:none; }
+.tag { padding:2px 8px; border-radius:4px; font-size:11px;
+       text-transform:uppercase; letter-spacing:1px; }
+.tag.ok { background:rgba(74,222,128,.15); color:var(--ok); }
+.tag.overdue { background:rgba(248,113,113,.15); color:var(--bad); }
+.tag.soon { background:rgba(251,191,36,.15); color:var(--warn); }
+.tag.open { background:rgba(125,211,252,.12); color:var(--acc); }
+.card { background:var(--panel); border:1px solid var(--line);
+        border-radius:8px; padding:16px; margin-bottom:20px; }
+.form { display:grid; gap:8px; grid-template-columns:1fr 1fr; }
+.form input, .form select, .form button {
+  padding:8px 10px; background:#0e1319; color:var(--fg);
+  border:1px solid var(--line); border-radius:6px; font:inherit;
+}
+.form button { grid-column:span 2; cursor:pointer; }
+.form input:focus, .form select:focus { outline:none; border-color:var(--acc); }
+.date-row { display:grid; grid-template-columns:80px 1fr 100px;
+            gap:8px; grid-column:span 2; }
+.date-label { grid-column:span 2; color:var(--dim); font-size:11px;
+              text-transform:uppercase; letter-spacing:1px; margin-top:6px; }
+.btn { padding:5px 10px; border-radius:5px; border:1px solid var(--line);
+       background:#0e1319; color:var(--fg); cursor:pointer;
+       font:inherit; font-size:12px; }
+.btn:hover { border-color:var(--acc); }
+.btn.primary { background:var(--acc); color:#06232e; border-color:var(--acc);
+               font-weight:600; }
+.btn.danger { color:var(--bad); }
+.btn.danger:hover { border-color:var(--bad); }
+.actions { display:flex; gap:6px; flex-wrap:wrap; }
+.empty { color:var(--dim); font-style:italic; }
+a { color:var(--acc); }
+.view { display:none; }
+.view.active { display:block; }
+.chk input { width:20px; height:20px; cursor:pointer; accent-color:var(--ok); }
+.chk { text-align:center; width:44px; }
+</style>
+</head>
+<body>
+<header>
+  <span class="brand">UTANG GUE</span>
+  <nav>
+    <button data-view="dash" class="active">Dashboard</button>
+    <button data-view="contacts">Kreditur</button>
+    <button data-view="new-debt">+ Utang</button>
+  </nav>
+</header>
+
+<main>
+  <!-- DASHBOARD -->
+  <section id="view-dash" class="view active">
+    <div class="stats">
+      <div class="stat"><label>Total utang belum lunas</label>
+           <b class="total" id="stat-total">Rp 0</b></div>
+      <div class="stat"><label>Lewat jatuh tempo</label>
+           <b class="bad" id="stat-overdue">0</b></div>
+      <div class="stat"><label>Jatuh tempo ≤3 hari</label>
+           <b class="warn" id="stat-soon">0</b></div>
+    </div>
+    <h2>Daftar Utang Gue</h2>
+    <table id="debt-table">
+      <thead>
+        <tr><th class="chk">Lunas</th><th>Kreditur</th><th>Jumlah</th>
+            <th>Keterangan</th><th>Jatuh Tempo</th><th>Status</th>
+            <th>Aksi</th></tr>
+      </thead>
+      <tbody id="debt-body"></tbody>
+    </table>
+    <p id="debt-empty" class="empty" style="display:none">
+      Belum ada catatan. Klik <b>+ Utang</b> di atas.
+    </p>
+  </section>
+
+  <!-- KREDITUR -->
+  <section id="view-contacts" class="view">
+    <h2>Kreditur (yang lo utangin)</h2>
+    <form id="contact-form" class="card form" autocomplete="off">
+      <input name="cname"   placeholder="Nama" required>
+      <input name="cphone"  placeholder="Telepon / WA">
+      <input name="cemail"  placeholder="Email">
+      <input name="cnote"   placeholder="Catatan">
+      <button class="btn primary" type="submit">Tambah Kreditur</button>
+    </form>
+    <table>
+      <thead><tr><th>Nama</th><th>Telepon</th><th>Email</th>
+                 <th>Catatan</th><th>Total Utang</th><th>Aksi</th></tr></thead>
+      <tbody id="contact-body"></tbody>
+    </table>
+    <p id="contact-empty" class="empty" style="display:none">
+      Belum ada kreditur.
+    </p>
+  </section>
+
+  <!-- TAMBAH UTANG -->
+  <section id="view-new-debt" class="view">
+    <h2>Catat Utang Baru</h2>
+    <form id="debt-form" class="card form" autocomplete="off">
+      <select name="dcontact" required id="debt-contact"></select>
+      <input type="number" name="damount" step="0.01" min="0.01"
+             placeholder="Jumlah" required>
+      <select name="dcurrency">
+        <option>IDR</option><option>USD</option>
+        <option>SGD</option><option>EUR</option>
+      </select>
+      <input name="ddesc" placeholder="Keterangan (mis. pinjam buat bensin)">
+      <span class="date-label">Jatuh tempo — tanggal / bulan / tahun</span>
+      <div class="date-row">
+        <select name="dday"   id="d-day"></select>
+        <select name="dmonth" id="d-month"></select>
+        <select name="dyear"  id="d-year"></select>
+      </div>
+      <button class="btn primary" type="submit">Simpan</button>
+    </form>
+    <p id="debt-need-contact" class="empty" style="display:none">
+      Belum ada kreditur. <a href="#" data-jump="contacts">Tambah dulu</a>.
+    </p>
+  </section>
+</main>
+
+<footer>semua angka di sini utang gue. data tersimpan di browser ini.</footer>
+
+<script>
+(function () {
+"use strict";
+
+// helper: baca field by name, aman dari bentrok properti form
+function field(form, name) {
+  return form.querySelector('[name="' + name + '"]');
+}
+
+// ============ STORAGE ============
+var KEY = "utanggue.v4";
+function emptyState() { return { contacts: [], debts: [], seq: { contact: 0, debt: 0 } }; }
+
+function load() {
+  try {
+    var raw = localStorage.getItem(KEY);
+    if (!raw) return emptyState();
+    var d = JSON.parse(raw);
+    return {
+      contacts: Array.isArray(d.contacts) ? d.contacts : [],
+      debts:    Array.isArray(d.debts)    ? d.debts    : [],
+      seq:      d.seq || { contact: 0, debt: 0 }
+    };
+  } catch (e) { return emptyState(); }
+}
+function save(d) { localStorage.setItem(KEY, JSON.stringify(d)); }
+function nextId(d, kind) {
+  d.seq[kind] = (d.seq[kind] || 0) + 1;
+  return d.seq[kind];
+}
+
+// ============ HELPERS ============
+var NAMA_BULAN = ["Januari","Februari","Maret","April","Mei","Juni",
+                  "Juli","Agustus","September","Oktober","November","Desember"];
+
+function money(cur, n) {
+  var v = Number(n) || 0;
+  if (cur === "IDR") {
+    return "Rp " + v.toLocaleString("id-ID", { maximumFractionDigits: 0 });
+  }
+  return cur + " " + v.toLocaleString("en-US", { maximumFractionDigits: 2 });
+}
+function pad2(n) { return String(n).padStart(2, "0"); }
+function todayISO() {
+  var t = new Date();
+  return t.getFullYear() + "-" + pad2(t.getMonth() + 1) + "-" + pad2(t.getDate());
+}
+function parseISO(iso) {
+  var p = iso.split("-");
+  return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+}
+function daysLeft(iso) {
+  var t = parseISO(todayISO());
+  var d = parseISO(iso);
+  return Math.round((d.getTime() - t.getTime()) / 86400000);
+}
+function formatTanggal(iso) {
+  var p = iso.split("-");
+  return Number(p[2]) + " " + NAMA_BULAN[Number(p[1]) - 1] + " " + p[0];
+}
+function urgency(debt) {
+  if (debt.status === "paid") return "paid";
+  var d = daysLeft(debt.due_date);
+  if (d < 0) return "overdue";
+  if (d <= 3) return "soon";
+  return "open";
+}
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+  });
+}
+
+// ============ INIT DROPDOWN TANGGAL ============
+function initDateDropdowns() {
+  var daySel   = document.getElementById("d-day");
+  var monthSel = document.getElementById("d-month");
+  var yearSel  = document.getElementById("d-year");
+  if (!daySel || daySel.dataset.init === "1") return;
+
+  for (var i = 1; i <= 31; i++) {
+    var o = document.createElement("option");
+    o.value = i; o.textContent = pad2(i);
+    daySel.appendChild(o);
+  }
+  for (var m = 0; m < 12; m++) {
+    var om = document.createElement("option");
+    om.value = m + 1; om.textContent = NAMA_BULAN[m];
+    monthSel.appendChild(om);
+  }
+  var yNow = new Date().getFullYear();
+  for (var y = yNow - 1; y <= yNow + 10; y++) {
+    var oy = document.createElement("option");
+    oy.value = y; oy.textContent = y;
+    yearSel.appendChild(oy);
+  }
+  daySel.dataset.init = "1";
+}
+
+function setDateDefault() {
+  var def = new Date();
+  def.setDate(def.getDate() + 14);
+  document.getElementById("d-day").value   = String(def.getDate());
+  document.getElementById("d-month").value = String(def.getMonth() + 1);
+  document.getElementById("d-year").value  = String(def.getFullYear());
+}
+
+// ============ VIEW SWITCH ============
+function switchView(name) {
+  document.querySelectorAll(".view").forEach(function (v) {
+    v.classList.remove("active");
+  });
+  var target = document.getElementById("view-" + name);
+  if (target) target.classList.add("active");
+  document.querySelectorAll("nav button").forEach(function (b) {
+    b.classList.toggle("active", b.dataset.view === name);
+  });
+  if (name === "dash")     renderDash();
+  if (name === "contacts") renderContacts();
+  if (name === "new-debt") renderDebtForm();
+}
+
+// ============ DASHBOARD ============
+function renderDash() {
+  var d = load();
+  var cmap = {};
+  d.contacts.forEach(function (c) { cmap[c.id] = c; });
+
+  var all = d.debts.map(function (x) {
+    return Object.assign({}, x, {
+      contact:   cmap[x.contact_id] || { name: "(dihapus)" },
+      urgency:   urgency(x),
+      days_left: daysLeft(x.due_date)
+    });
+  });
+
+  var open = all.filter(function (x) { return x.status === "open"; });
+  var total   = open.reduce(function (s, x) { return s + x.amount; }, 0);
+  var overdue = open.filter(function (x) { return x.days_left < 0; }).length;
+  var soon    = open.filter(function (x) {
+    return x.days_left >= 0 && x.days_left <= 3;
+  }).length;
+
+  document.getElementById("stat-total").textContent   = money("IDR", total);
+  document.getElementById("stat-overdue").textContent = overdue;
+  document.getElementById("stat-soon").textContent    = soon;
+
+  all.sort(function (a, b) {
+    var ap = a.status === "paid" ? 1 : 0;
+    var bp = b.status === "paid" ? 1 : 0;
+    if (ap !== bp) return ap - bp;
+    return a.due_date.localeCompare(b.due_date);
+  });
+
+  var tbody    = document.getElementById("debt-body");
+  var emptyMsg = document.getElementById("debt-empty");
+  var tableEl  = document.getElementById("debt-table");
+  tbody.innerHTML = "";
+
+  if (!all.length) {
+    emptyMsg.style.display = "block";
+    tableEl.style.display  = "none";
+    return;
+  }
+  emptyMsg.style.display = "none";
+  tableEl.style.display  = "table";
+
+  all.forEach(function (x) {
+    var tr = document.createElement("tr");
+    tr.className = x.urgency;
+
+    var dueTag = "";
+    if (x.status === "open") {
+      if (x.days_left < 0)        dueTag = " <small>(lewat " + (-x.days_left) + " hari)</small>";
+      else if (x.days_left === 0) dueTag = " <small>(hari ini)</small>";
+      else                        dueTag = " <small>(H-" + x.days_left + ")</small>";
+    }
+    var statusTag = x.status === "paid"
+      ? '<span class="tag ok">Lunas</span>'
+      : '<span class="tag ' + x.urgency + '">' + x.urgency + '</span>';
+
+    var tdChk = document.createElement("td");
+    tdChk.className = "chk";
+    var cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = x.status === "paid";
+    cb.addEventListener("change", function () { togglePaid(x.id, cb.checked); });
+    tdChk.appendChild(cb);
+    tr.appendChild(tdChk);
+
+    var tdContact = document.createElement("td");
+    tdContact.textContent = x.contact.name;
+    tr.appendChild(tdContact);
+
+    var tdAmount = document.createElement("td");
+    tdAmount.textContent = money(x.currency, x.amount);
+    tr.appendChild(tdAmount);
+
+    var tdDesc = document.createElement("td");
+    tdDesc.textContent = x.description || "-";
+    tr.appendChild(tdDesc);
+
+    var tdDue = document.createElement("td");
+    tdDue.innerHTML = esc(formatTanggal(x.due_date)) + dueTag;
+    tr.appendChild(tdDue);
+
+    var tdStatus = document.createElement("td");
+    tdStatus.innerHTML = statusTag;
+    tr.appendChild(tdStatus);
+
+    var tdAct = document.createElement("td");
+    tdAct.className = "actions act";
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn danger";
+    btn.textContent = "Hapus";
+    btn.addEventListener("click", function () { delDebt(x.id); });
+    tdAct.appendChild(btn);
+    tr.appendChild(tdAct);
+
+    tbody.appendChild(tr);
+  });
+}
+
+function togglePaid(id, paid) {
+  var d = load();
+  var t = d.debts.find(function (x) { return x.id === id; });
+  if (!t) return;
+  t.status  = paid ? "paid" : "open";
+  t.paid_at = paid ? new Date().toISOString() : null;
+  save(d);
+  renderDash();
+}
+function delDebt(id) {
+  if (!confirm("Hapus catatan utang ini?")) return;
+  var d = load();
+  d.debts = d.debts.filter(function (x) { return x.id !== id; });
+  save(d);
+  renderDash();
+}
+
+// ============ KREDITUR ============
+function renderContacts() {
+  var d = load();
+  var tbody    = document.getElementById("contact-body");
+  var emptyMsg = document.getElementById("contact-empty");
+  tbody.innerHTML = "";
+
+  if (!d.contacts.length) {
+    emptyMsg.style.display = "block";
+    return;
+  }
+  emptyMsg.style.display = "none";
+
+  var totals = {};
+  d.debts.forEach(function (x) {
+    if (x.status !== "open") return;
+    totals[x.contact_id] = (totals[x.contact_id] || 0) + x.amount;
+  });
+
+  var sorted = d.contacts.slice().sort(function (a, b) {
+    return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+  });
+
+  sorted.forEach(function (c) {
+    var tr = document.createElement("tr");
+
+    var tdName = document.createElement("td"); tdName.textContent = c.name;      tr.appendChild(tdName);
+    var tdPh   = document.createElement("td"); tdPh.textContent = c.phone || "-"; tr.appendChild(tdPh);
+    var tdEm   = document.createElement("td"); tdEm.textContent = c.email || "-"; tr.appendChild(tdEm);
+    var tdNo   = document.createElement("td"); tdNo.textContent = c.note  || "-"; tr.appendChild(tdNo);
+
+    var tdTot = document.createElement("td");
+    var t = totals[c.id] || 0;
+    if (t > 0) {
+      var b = document.createElement("b");
+      b.className = "bad";
+      b.textContent = money("IDR", t);
+      tdTot.appendChild(b);
+    } else {
+      var sp = document.createElement("span");
+      sp.className = "ok";
+      sp.textContent = "lunas";
+      tdTot.appendChild(sp);
+    }
+    tr.appendChild(tdTot);
+
+    var tdAct = document.createElement("td");
+    tdAct.className = "actions act";
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn danger";
+    btn.textContent = "Hapus";
+    btn.addEventListener("click", function () {
+      if (!confirm("Hapus " + c.name + " dan semua catatan utangnya?")) return;
+      var d2 = load();
+      d2.contacts = d2.contacts.filter(function (x) { return x.id !== c.id; });
+      d2.debts    = d2.debts.filter(function (x) { return x.contact_id !== c.id; });
+      save(d2);
+      renderContacts();
+    });
+    tdAct.appendChild(btn);
+    tr.appendChild(tdAct);
+
+    tbody.appendChild(tr);
+  });
+}
+
+// ============ FORM: TAMBAH KREDITUR ============
+document.getElementById("contact-form").addEventListener("submit", function (e) {
+  e.preventDefault();
+  try {
+    var f = e.target;
+    var name = field(f, "cname").value.trim();
+    if (!name) { alert("Nama wajib diisi."); return; }
+    var d = load();
+    var id = nextId(d, "contact");
+    d.contacts.push({
+      id: id,
+      name: name,
+      phone: field(f, "cphone").value.trim(),
+      email: field(f, "cemail").value.trim(),
+      note:  field(f, "cnote").value.trim(),
+      created_at: new Date().toISOString()
+    });
+    save(d);
+    f.reset();
+    renderContacts();
+  } catch (err) {
+    alert("Gagal simpan kreditur:\n" + err.message);
+    console.error(err);
+  }
+});
+
+// ============ FORM: TAMBAH UTANG ============
+function renderDebtForm() {
+  var d = load();
+  var sel  = document.getElementById("debt-contact");
+  var need = document.getElementById("debt-need-contact");
+  var btn  = document.querySelector("#debt-form button[type=submit]");
+
+  sel.innerHTML = "";
+
+  if (!d.contacts.length) {
+    need.style.display = "block";
+    sel.disabled = true;
+    btn.disabled = true;
+    return;
+  }
+  need.style.display = "none";
+  sel.disabled = false;
+  btn.disabled = false;
+
+  var sorted = d.contacts.slice().sort(function (a, b) {
+    return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+  });
+  sorted.forEach(function (c) {
+    var o = document.createElement("option");
+    o.value = String(c.id);
+    o.textContent = c.name;
+    sel.appendChild(o);
+  });
+
+  setDateDefault();
+}
+
+document.getElementById("debt-form").addEventListener("submit", function (e) {
+  e.preventDefault();
+  try {
+    var f = e.target;
+
+    var contactVal = field(f, "dcontact").value;
+    var contact_id = Number(contactVal);
+    if (!contact_id) { alert("Pilih kreditur dulu."); return; }
+
+    var amount = parseFloat(field(f, "damount").value);
+    if (!isFinite(amount) || amount <= 0) { alert("Jumlah harus angka > 0."); return; }
+
+    var day   = Number(document.getElementById("d-day").value);
+    var month = Number(document.getElementById("d-month").value);
+    var year  = Number(document.getElementById("d-year").value);
+    if (!day || !month || !year) { alert("Tanggal/bulan/tahun wajib dipilih."); return; }
+
+    var cek = new Date(year, month - 1, day);
+    if (cek.getFullYear() !== year || cek.getMonth() !== month - 1 || cek.getDate() !== day) {
+      alert("Tanggal itu nggak ada di kalender. Cek lagi.");
+      return;
+    }
+    var iso = year + "-" + pad2(month) + "-" + pad2(day);
+
+    var d = load();
+    var id = nextId(d, "debt");
+    d.debts.push({
+      id: id,
+      contact_id: contact_id,
+      amount: amount,
+      currency: field(f, "dcurrency").value,
+      description: field(f, "ddesc").value.trim(),
+      due_date: iso,
+      status: "open",
+      paid_at: null,
+      created_at: new Date().toISOString()
+    });
+    save(d);
+
+    // reset field setelah simpan
+    field(f, "damount").value = "";
+    field(f, "ddesc").value = "";
+    setDateDefault();
+
+    switchView("dash");
+  } catch (err) {
+    alert("Gagal simpan utang:\n" + err.message);
+    console.error(err);
+  }
+});
+
+// ============ NAV ============
+document.querySelectorAll("nav button").forEach(function (b) {
+  b.addEventListener("click", function () { switchView(b.dataset.view); });
+});
+document.querySelectorAll("[data-jump]").forEach(function (a) {
+  a.addEventListener("click", function (e) {
+    e.preventDefault();
+    switchView(a.dataset.jump);
+  });
+});
+
+// ============ BOOT ============
+initDateDropdowns();
+setDateDefault();
+renderDash();
+
+})();
+</script>
+</body>
+</html>
