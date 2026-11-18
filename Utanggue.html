@@ -91,7 +91,6 @@ a { color:var(--acc); }
 </header>
 
 <main>
-  <!-- DASHBOARD -->
   <section id="view-dash" class="view active">
     <div class="stats">
       <div class="stat"><label>Total utang belum lunas</label>
@@ -115,7 +114,6 @@ a { color:var(--acc); }
     </p>
   </section>
 
-  <!-- KREDITUR -->
   <section id="view-contacts" class="view">
     <h2>Kreditur (yang lo utangin)</h2>
     <form id="contact-form" class="card form" autocomplete="off">
@@ -135,7 +133,6 @@ a { color:var(--acc); }
     </p>
   </section>
 
-  <!-- TAMBAH UTANG -->
   <section id="view-new-debt" class="view">
     <h2>Catat Utang Baru</h2>
     <form id="debt-form" class="card form" autocomplete="off">
@@ -167,12 +164,11 @@ a { color:var(--acc); }
 (function () {
 "use strict";
 
-// helper: baca field by name, aman dari bentrok properti form
 function field(form, name) {
   return form.querySelector('[name="' + name + '"]');
 }
 
-// ============ STORAGE ============
+// ============ STORAGE DENGAN PENGAMAN ============
 var KEY = "utanggue.v4";
 function emptyState() { return { contacts: [], debts: [], seq: { contact: 0, debt: 0 } }; }
 
@@ -188,7 +184,14 @@ function load() {
     };
   } catch (e) { return emptyState(); }
 }
-function save(d) { localStorage.setItem(KEY, JSON.stringify(d)); }
+
+function save(d) {
+  try {
+    localStorage.setItem(KEY, JSON.stringify(d));
+  } catch (e) {
+    alert("GAGAL MENYIMPAN DATA!\n\nMemori browser penuh atau diblokir (mungkin mode Incognito).\nData saat ini belum tersimpan permanen. Segera screenshot atau catat manual.");
+  }
+}
 function nextId(d, kind) {
   d.seq[kind] = (d.seq[kind] || 0) + 1;
   return d.seq[kind];
@@ -568,7 +571,6 @@ document.getElementById("debt-form").addEventListener("submit", function (e) {
     });
     save(d);
 
-    // reset field setelah simpan
     field(f, "damount").value = "";
     field(f, "ddesc").value = "";
     setDateDefault();
